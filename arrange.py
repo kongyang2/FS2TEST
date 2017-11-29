@@ -85,7 +85,8 @@ class UserInputData:
         'conn_time' : 0,
         'play_time' : 0,
         'play_count' : 0,
-        'win_count' : 0
+        'win_count' : 0,
+        'login_day_count' : 0
         } 
         
         self.for_7_days = {
@@ -94,6 +95,7 @@ class UserInputData:
         'play_time' : 0,
         'play_count' : 0,
         'win_count' : 0
+        'login_day_count' : 0
         } 
     
         self.for_3_days = {
@@ -102,6 +104,7 @@ class UserInputData:
         'play_time' : 0,
         'play_count' : 0,
         'win_count' : 0
+        'login_day_count' : 0
         } 
     
 
@@ -127,6 +130,7 @@ def make_input_table(target_date):
             u.for_30_days['play_time']+= current.play_time; 
             u.for_30_days['play_count']+= current.play_count; 
             u.for_30_days['win_count']+= current.win_count; 
+            u.for_30_days['login_day_count']+=1
             
             current_date = datetime.fromtimestamp(current.date.seconds); 
             if current_date >= (target_date - timedelta(days=7)):
@@ -135,13 +139,14 @@ def make_input_table(target_date):
                 u.for_7_days['play_time']+= current.play_time; 
                 u.for_7_days['play_count']+= current.play_count; 
                 u.for_7_days['win_count']+= current.win_count; 
-                
+                u.for_7_days['login_day_count']+=1
             if current_date >= (target_date - timedelta(days=3)):
                 u.for_3_days['amount']+= current.amount; 
                 u.for_3_days['conn_time']+= current.conn_time; 
                 u.for_3_days['play_time']+= current.play_time; 
                 u.for_3_days['play_count']+= current.play_count; 
                 u.for_3_days['win_count']+= current.win_count; 
+                u.for_3_days['login_day_count']+=1
             
     #for u in user_list.values():
      #   print(u.user_id, u.for_30_days['conn_time'] , u.for_7_days['conn_time']);
@@ -152,11 +157,11 @@ def make_input_table(target_date):
             u.is_left = True; 
             
         sql = "INSERT INTO ml_data ( id , date, for_30_days , for_7_days , for_3_days , is_left ) \
-        VALUES ( '%s', '%s', { 'amount' : %d , 'conn_time' : %d , 'play_time' : %d , 'play_count' : %d , 'win_count' : %d }, \
-        { 'amount' : %d , 'conn_time' : %d , 'play_time' : %d , 'play_count' : %d , 'win_count' : %d }, \
-        { 'amount' : %d , 'conn_time' : %d , 'play_time' : %d , 'play_count' : %d , 'win_count' : %d }, %r)"\
-         % ( u.user_id , target_date.date(), u.for_30_days['amount'], u.for_30_days['conn_time'], u.for_30_days['play_time'], u.for_30_days['play_count'],  u.for_30_days['win_count'],
-         u.for_7_days['amount'], u.for_7_days['conn_time'], u.for_7_days['play_time'], u.for_7_days['play_count'],  u.for_7_days['win_count'],
+        VALUES ( '%s', '%s', { 'login_day_count' : %d , 'amount' : %d , 'conn_time' : %d , 'play_time' : %d , 'play_count' : %d , 'win_count' : %d }, \
+        { 'login_day_count' : %d , 'amount' : %d , 'conn_time' : %d , 'play_time' : %d , 'play_count' : %d , 'win_count' : %d }, \
+        { 'login_day_count' : %d , 'amount' : %d , 'conn_time' : %d , 'play_time' : %d , 'play_count' : %d , 'win_count' : %d }, %r)"\
+         % ( u.user_id , target_date.date(), u.for_30_days['login_day_count'], u.for_30_days['amount'], u.for_30_days['conn_time'], u.for_30_days['play_time'], u.for_30_days['play_count'],  u.for_30_days['win_count'],
+         u.for_7_days['login_day_count'], 'u.for_7_days['amount'], u.for_7_days['conn_time'], u.for_7_days['play_time'], u.for_7_days['play_count'],  u.for_7_days['win_count'],
          u.for_3_days['amount'], u.for_3_days['conn_time'], u.for_3_days['play_time'], u.for_3_days['play_count'],  u.for_3_days['win_count'],
          u.is_left );
          

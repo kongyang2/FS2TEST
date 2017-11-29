@@ -51,9 +51,9 @@ def learn(start_date , end_date):
     
     
     
-    for i,r in train.iterrows():
-        if r['is_left'] == 1:
-            print(r['for_30_days_conn_time'], r['for_7_days_conn_time'], r['for_3_days_conn_time'])
+ #   for i,r in train.iterrows():
+  #      if r['is_left'] == 1:
+   #         print(r['for_30_days_conn_time'], r['for_7_days_conn_time'], r['for_3_days_conn_time'])
             
      
     y, X = train['is_left'] , train[['for_30_days_conn_time','for_7_days_conn_time','for_3_days_conn_time']];
@@ -78,6 +78,6 @@ def learn(start_date , end_date):
     predictions = list(estimator.predict(input_fn=predict_input_fn));
     print(predictions)
             
-learn('2016-02-01','2016-02-01')
+learn('2016-02-01','2016-03-31')
 
 
