@@ -42,10 +42,6 @@ def learn(start_date , end_date):
                         else:
                             v = 0;
                     new_row.update({k:v});
-            if new_row['for_30_days_conn_time'] > 0:     
-                new_row.update({'ratio_conn_time_7_to_30' : (new_row['for_7_days_conn_time']/7) / (new_row['for_30_days_conn_time']/30) });
-            else:
-                new_row.update({'ratio_conn_time_7_to_30' : 0 });
             
             data.append(new_row);
         
@@ -53,13 +49,35 @@ def learn(start_date , end_date):
         
     train = pd.DataFrame(data);
     
-    y, X = train['is_left'] , train[['for_30_days_conn_time','for_7_days_conn_time','ratio_conn_time_7_to_30']];
+    
+    
+    for i,r in train.iterrows():
+        if r['is_left'] == 1:
+            print(r['for_30_days_conn_time'], r['for_7_days_conn_time'], r['for_3_days_conn_time'])
+            
+     
+    y, X = train['is_left'] , train[['for_30_days_conn_time','for_7_days_conn_time','for_3_days_conn_time']];
     
     X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=0.2)
-    lr = linear_model.LogisticRegression()
-    lr.fit(X_train, y_train)
-    print(metrics.accuracy_score(y_test, lr.predict(X_test)))
+   
+    train_input_fn = tf.estimator.inputs.pandas_input_fn( x = X_train , y = y_train , num_epochs=1, shuffle=True);
+    test_input_fn = tf.estimator.inputs.pandas_input_fn( x = X_test , y = y_test , num_epochs=1, shuffle=True);
     
+    fc = [ tf.feature_column.numeric_column('for_30_days_conn_time') , tf.feature_column.numeric_column('for_7_days_conn_time') , tf.feature_column.numeric_column('for_3_days_conn_time')]
+    estimator = tf.estimator.LinearClassifier( fc );
     
+    estimator.train(train_input_fn);
+    accuracy_score = estimator.evaluate(input_fn=test_input_fn)["accuracy"]
+    print("\nTest Accuracy: {0:f}\n".format(accuracy_score))
+
+    testDict = [{ 'for_30_days_conn_time' : 10000 , 'for_7_days_conn_time' : 100 , 'for_3_days_conn_time' : 0 }] ; 
+    testData = pd.DataFrame(testDict)
+    
+    predict_input_fn = tf.estimator.inputs.pandas_input_fn( testData, None,  num_epochs=1,  shuffle=False);
+    
+    predictions = list(estimator.predict(input_fn=predict_input_fn));
+    print(predictions)
             
-learn('2016-02-01','2016-03-01')
+learn('2016-02-01','2016-02-01')
+
+
