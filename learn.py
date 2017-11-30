@@ -21,6 +21,8 @@ def learn(start_date , end_date):
     current_date = start_date;
     
     data = [];
+    
+    left_data = [];
  
     while current_date <= end_date:
         
@@ -31,10 +33,11 @@ def learn(start_date , end_date):
         for row in rowset:
             new_row = {};
             for k,v in row.items():
+                
                 if type(v) is OrderedMapSerializedKey:
                     for k2,v2 in v.items():
-                       updatekey = "%s_%s" % (k,k2);
-                       new_row.update({updatekey:v2})
+                        updatekey = "%s_%s" % (k,k2);
+                        new_row.update({updatekey:v2})
                 else: 
                     if type(v) is bool: 
                         if v: 
@@ -43,19 +46,15 @@ def learn(start_date , end_date):
                             v = 0;
                     new_row.update({k:v});
             
-            data.append(new_row);
+            if( new_row['for_30_days_login_day_count']>=7):
+                data.append(new_row);
+                if( new_row['is_left']==1):
+                    left_data.append(new_row);
         
         current_date = current_date + timedelta(days=1);
         
     train = pd.DataFrame(data);
     
-    
-    
- #   for i,r in train.iterrows():
-  #      if r['is_left'] == 1:
-   #         print(r['for_30_days_conn_time'], r['for_7_days_conn_time'], r['for_3_days_conn_time'])
-            
-     
     y, X = train['is_left'] , train[['for_30_days_conn_time','for_7_days_conn_time','for_3_days_conn_time']];
     
     X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=0.2)
@@ -77,7 +76,13 @@ def learn(start_date , end_date):
     
     predictions = list(estimator.predict(input_fn=predict_input_fn));
     print(predictions)
-            
-learn('2016-02-01','2016-03-31')
+    
+    left_test = pd.DataFrame(left_data);
+    y_left, X_left = left_test['is_left'] , left_test[['for_30_days_conn_time','for_7_days_conn_time','for_3_days_conn_time']];
+    left_input_fn = tf.estimator.inputs.pandas_input_fn( x = X_left , y = y_left , num_epochs=1, shuffle=True);
+    accuracy_score = estimator.evaluate(input_fn=left_input_fn)["accuracy"]
+    print("\nLeft Test Accuracy: {0:f}\n".format(accuracy_score))
+    
+learn('2016-02-01','2016-12-01')
 
 
