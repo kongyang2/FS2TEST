@@ -117,7 +117,7 @@ def make_input_table(target_date):
     user_list = dict();
      
     for user in target_users:
-        query = "SELECT user_id, date, amount, conn_time, play_count, play_time, win_count from daily_user \
+        query = "SELECT user_id, date, create_date, amount, conn_time, play_count, play_time, win_count from daily_user \
         where date <= '%s' and date >= '%s' and user_id='%s'" % (target_date.date(),  (target_date - timedelta(days=30)).date(), user.user_id );
 
         rowset = session.execute(query);
@@ -131,6 +131,8 @@ def make_input_table(target_date):
             u.for_30_days['play_count']+= current.play_count; 
             u.for_30_days['win_count']+= current.win_count; 
             u.for_30_days['login_day_count']+=1
+            
+            u.create_date = current.create_date;
             
             current_date = datetime.fromtimestamp(current.date.seconds); 
             if current_date >= (target_date - timedelta(days=7)):
@@ -156,13 +158,13 @@ def make_input_table(target_date):
         if is_left_user(u.user_id, target_date , 30 ):
             u.is_left = True; 
             
-        sql = "INSERT INTO ml_data ( id , date, for_30_days , for_7_days , for_3_days , is_left ) \
-        VALUES ( '%s', '%s', { 'login_day_count' : %d , 'amount' : %d , 'conn_time' : %d , 'play_time' : %d , 'play_count' : %d , 'win_count' : %d }, \
+        sql = "INSERT INTO ml_data ( id , date, create_date, for_30_days , for_7_days , for_3_days , is_left ) \
+        VALUES ( '%s', '%s', '%s', { 'login_day_count' : %d , 'amount' : %d , 'conn_time' : %d , 'play_time' : %d , 'play_count' : %d , 'win_count' : %d }, \
         { 'login_day_count' : %d , 'amount' : %d , 'conn_time' : %d , 'play_time' : %d , 'play_count' : %d , 'win_count' : %d }, \
         { 'login_day_count' : %d , 'amount' : %d , 'conn_time' : %d , 'play_time' : %d , 'play_count' : %d , 'win_count' : %d }, %r)"\
-         % ( u.user_id , target_date.date(), u.for_30_days['login_day_count'], u.for_30_days['amount'], u.for_30_days['conn_time'], u.for_30_days['play_time'], u.for_30_days['play_count'],  u.for_30_days['win_count'],
+         % ( u.user_id , target_date.date(), u.create_date, u.for_30_days['login_day_count'], u.for_30_days['amount'], u.for_30_days['conn_time'], u.for_30_days['play_time'], u.for_30_days['play_count'],  u.for_30_days['win_count'],
          u.for_7_days['login_day_count'], u.for_7_days['amount'], u.for_7_days['conn_time'], u.for_7_days['play_time'], u.for_7_days['play_count'],  u.for_7_days['win_count'],
-         u.for_3_days['amount'], u.for_3_days['conn_time'], u.for_3_days['play_time'], u.for_3_days['play_count'],  u.for_3_days['win_count'],
+         u.for_3_days['login_day_count'], u.for_3_days['amount'], u.for_3_days['conn_time'], u.for_3_days['play_time'], u.for_3_days['play_count'],  u.for_3_days['win_count'],
          u.is_left );
          
         session.execute(sql);
@@ -172,9 +174,9 @@ def make_input_table(target_date):
 
 start_date = datetime.strptime('2016-02-01', "%Y-%m-%d");
 current_date = start_date;
-end_date = datetime.strptime('2017-11-01', "%Y-%m-%d");
+end_date = datetime.strptime('2016-02-01', "%Y-%m-%d");
 
-while current_date < end_date:
+while current_date <= end_date:
     print(current_date.date());
     make_input_table(current_date.date().strftime("%Y-%m-%d"));
     current_date = current_date + timedelta(days=1);
